@@ -30,11 +30,9 @@ export default function FeaturedDestinations() {
       try {
         setLoading(true);
 
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/all-packages`,
-          {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/all-packages`,{
             cache: "no-store",
-            signal: controller.signal,
+            signal:controller.signal
           }
         );
 

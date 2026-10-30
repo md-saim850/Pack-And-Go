@@ -29,7 +29,7 @@ async function getDestination(id: string) {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/all-packages/${id}`, {
       cache: "no-store",
       headers: {
-        authorization: `Bearer ${jwtToken?.token}`,
+        "Authorization": `Bearer ${jwtToken?.token}`,
       },
     });
 

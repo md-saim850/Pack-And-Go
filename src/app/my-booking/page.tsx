@@ -2,30 +2,36 @@ import Image from "next/image";
 import { Calendar, MapPin, Eye } from "lucide-react";
 import DeleteMyBookingBtn from "./DeleteMyBookingBtn";
 import Link from "next/link";
-import type{ TravelPackage } from "@/type";
+import type{ BookingType } from "@/type";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
-
-interface BookingType{
-  _id:string
-  data:TravelPackage
+const getMyBooking = async() => {
   
+  try {
+    const jwtToken = await auth.api.getToken({
+      headers: await headers(),
+    })
+
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/my-booking`, {
+      cache: "no-store",
+      headers: {
+        Authorization: `Bearer ${jwtToken?.token}`,
+      },
+    });
+
+    if (res.status === 404) return { data: null, error: "not-found" };
+    if (!res.ok) return { data: null, error: "server-error" };
+
+    const data = await res.json(); // read the body only once
+    return { data, error: null };
+  } catch {
+    return { data: null, error: "network-error" };
+  }
 }
 
 export default async function MyBookingsPage() {
-
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/my-booking`,{ 
-    cache: "no-store" 
-  });
-
-  if (!res.ok) {
-    throw new Error("Failed to fetch my booking");
-  }
-
-  const bookings: BookingType[] = await res.json();
-
-  if (!Array.isArray(bookings)) {
-    throw new Error("Invalid booking API response");
-  }
+  const {data:bookings, error} = await getMyBooking()
 
   return (
     <div className="min-h-screen bg-white font-sans text-gray-900 py-10 px-4 sm:px-6 lg:px-8">
@@ -43,7 +49,7 @@ export default async function MyBookingsPage() {
 
         {/* Bookings List */}
         <div className="space-y-6">
-          {bookings.map((booking:BookingType) => {
+          {bookings?.map((booking:BookingType) => {
 
             return (
               <div

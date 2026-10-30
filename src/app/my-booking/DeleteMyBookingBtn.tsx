@@ -1,12 +1,22 @@
 'use client'
+import { authClient } from '@/lib/auth-client'
 import { Trash2 } from 'lucide-react'
 
 export default function DeleteMyBookingBtn({id}: {id:string}) {
 
   const handleDelete = async(id:string) =>{
     try{
+      const {data, error} = await authClient.token();
+
+      if(error || !data?.token){
+        throw new Error("Unauthorizated") 
+      }
+
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/my-booking/${id}`, {
-        method:"DELETE"
+        method:"DELETE",
+        headers:{
+          "Authorization":`Bearer ${data.token}`
+        }
       })
 
       if(!res.ok){
@@ -14,7 +24,7 @@ export default function DeleteMyBookingBtn({id}: {id:string}) {
         throw new Error(data.message);
       }
 
-      console.log("Package Deleted.");
+      alert("Package Deleted.");
 
     }catch(error){
       console.log(error);

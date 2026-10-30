@@ -1,40 +1,50 @@
 'use client'
-import { ArrowRight, ArrowUpRight } from 'lucide-react'
+import { authClient } from '@/lib/auth-client';
+import { ArrowRight } from 'lucide-react'
 
 export default function DestinationCardBtn({id}:{id:string | number}) {
 
   const handleAdd = async (id: string | number) => {
     try {
+      const{data, error} = await authClient.token();
+
+      if (error) {
+        throw new Error("Failed to generate JWT token");
+      }
+
+      const token = data?.token
+
+      if (!token) {
+        throw new Error("JWT token not found");
+      }
+
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/my-booking/${id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify({ id }),
       });
 
-      if (!res.ok) {
-        // Handle known cases with friendly messages
-        if (res.status === 409) {
-          alert("Already exists");
-          return { success: false, exists: true};
-        }
-        if (res.status === 400) {
-          alert("Invalid ID");
-          return { success: false};
-        }
 
-        // Any other error status
-        throw new Error(`Request failed (${res.status})`);
+
+      const result = await res.json();
+
+      
+      if (!res.ok) {
+        alert(result.message);
+        throw new Error(result.message || `Request failed (${res.status})`);
       }
 
-      // Success (201)
       alert("Added package successfully");
-      return { success: true};
+      return { success: true };
 
     } catch (error) {
-      console.error("handleAdd failed:", error);
-      return { success: false, message: (error as Error).message };
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Something went wrong",
+      };
     }
   };
 
